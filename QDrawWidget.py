@@ -1,3 +1,5 @@
+from PyQt5 import QtWidgets, QtCore, QtGui
+
 class QDrawWidget(QtWidgets.QWidget):
     
     def __init__(self, width=800, height=800):
@@ -7,8 +9,9 @@ class QDrawWidget(QtWidgets.QWidget):
         self.drawing = False
         self.grid = True
         self.points = []
-        self.setMouseTracking(True) # only get events when button is pressed
+        self.setMouseTracking(True)  # only get events when button is pressed
         self.initUI()
+
 
     def initUI(self):      
         self.setWindowTitle('Drawable')
@@ -21,7 +24,8 @@ class QDrawWidget(QtWidgets.QWidget):
             self.update()
         elif ev.button() == QtCore.Qt.RightButton:
             try:
-                self.points = custom_filter(self.points) # needs to be implemented outside!
+                print("rechtsklick")
+                #self.points = custom_filter(self.points) # needs to be implemented outside!
             except NameError:
                 pass
             
