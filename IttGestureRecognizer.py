@@ -30,10 +30,14 @@ class IttGestureRecognizer(QMainWindow):
             self.draw_widget_width, self.draw_widget_height)
         self.__ui.DrawWidgetContainer.addWidget(self._drawWidget)
         self.__ui.SaveGestureButton.clicked.connect(self.save_current_gesture)
+        self.__ui.ShowButton.clicked.connect(self.predict_gesture)
+
+    def predict_gesture(self):
+        # TODO:
+        self.ResultOutput.setText("Result")
 
     def save_current_gesture(self):
         self.gesture_original = self._drawWidget.points
-        print(self.gesture_original)
         # resample points
         self.gesture_resampled = self.prepare_points(self.gesture_original)
 
@@ -45,8 +49,6 @@ class IttGestureRecognizer(QMainWindow):
             gesture_name_list.append(key)
         self.GestureList.clear()
         self.GestureList.insertItems(0, gesture_name_list)
-        print(type(self.gesture_resampled))
-        print(self.gesture_resampled)
         # TODO: remove, just for testing
         # self._drawWidget.points = self.gesture_resampled
         # self._drawWidget.repaint()
@@ -58,7 +60,6 @@ class IttGestureRecognizer(QMainWindow):
         # 2. Calculate angle and rotate points
         angle = -self.angle_between(
             resampled_points[0], self.centroid(resampled_points))
-        print(angle)
         rotated_points = self.rotate(
             resampled_points, self.centroid(resampled_points), angle)
 
