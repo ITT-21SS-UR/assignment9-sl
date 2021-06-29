@@ -18,9 +18,9 @@ class IttGestureRecognizer(QMainWindow):
         self.draw_widget_height = 800
         self._init_ui()
         self.step_count = 64
-        self.rotation_angle = 0
         self.gesture_original = []
         self.gesture_resampled = []
+        self.saved_gestures = {}
 
     def _init_ui(self):
         self.setWindowTitle("$1 Gesture Recognizer")
@@ -33,21 +33,25 @@ class IttGestureRecognizer(QMainWindow):
 
     def save_current_gesture(self):
         self.gesture_original = self._drawWidget.points
+        print(self.gesture_original)
+        self.gesture_resampled = self.prepare_points(self.gesture_original)
+        print(self.gesture_resampled)
 
+    def prepare_points(self, points):
         # 1. Resample point path
-        self.resample()
+        resampled_points = self.resample(points)
 
         # 2. Calculate angle and rotate points
         angle = - \
             self.angle_between(
-                self.gesture_resampled[0], self.centroid(self.gesture_resampled))
-        self.rotate(self.centroid(self.gesture_resampled), angle)
+                resampled_points[0], self.centroid(resampled_points))
+        rotated_points = self.rotate(
+            resampled_points, self.centroid(resampled_points), angle)
 
         # 3. Scale and translate
-        self.scale()
-        print(self.gesture_resampled)
+        self.scale(rotated_points)
 
-        # (4. Find optimal angel for best score)
+        return rotated_points
 
     def distance(self, p1, p2):
         # basic vector norm
@@ -70,7 +74,7 @@ class IttGestureRecognizer(QMainWindow):
         return length
 
     # processes the gesture for normalize size and other things
-    def resample(self):
+    def resample(self, points):
         # resample the given stroke's list of points
         # represent the stroke with the amount of step_count points
 
@@ -78,7 +82,7 @@ class IttGestureRecognizer(QMainWindow):
         resampled_points = []
 
         # the sum of the distances of all points along the originally drawn stroke
-        length = self.total_length(self.gesture_original)
+        length = self.total_length(points)
 
         print(length)
 
@@ -91,27 +95,27 @@ class IttGestureRecognizer(QMainWindow):
         curpos = 0
 
         # add the first point of the original stroke to the point list
-        resampled_points.append(self.gesture_original[0])
+        resampled_points.append(points[0])
 
         # iterate the stroke's point list
         i = 1
-        while i < len(self.gesture_original):
-            p1 = self.gesture_original[i - 1]
+        while i < len(points):
+            p1 = points[i - 1]
 
             # calculate the distance of the current pair of points
-            d = self.distance(p1, self.gesture_original[i])
+            d = self.distance(p1, points[i])
 
             if curpos + d >= stepsize:
                 # once we reach or step over our desired distance, we push our resampled point
                 # to the correct position based on our stepsize
                 nx = p1[0] + ((stepsize - curpos) / d) * \
-                    (self.gesture_original[i][0] - p1[0])
+                    (points[i][0] - p1[0])
                 ny = p1[1] + ((stepsize - curpos) / d) * \
-                    (self.gesture_original[i][1] - p1[1])
+                    (points[i][1] - p1[1])
 
                 # store the new data
                 resampled_points.append([nx, ny])
-                self.gesture_original.insert(i, [nx, ny])
+                points.insert(i, [nx, ny])
 
                 # reset curpos
                 curpos = 0
@@ -120,7 +124,7 @@ class IttGestureRecognizer(QMainWindow):
 
             i += 1
 
-        self.gesture_resampled = resampled_points
+        return points
 
     def centroid(self, points):
         xs, ys = zip(*points)
@@ -134,7 +138,7 @@ class IttGestureRecognizer(QMainWindow):
         # return the angle in degrees
         return np.math.atan2(dy, dx) * 180 / np.math.pi
 
-    def rotate(self, center, angle_degree):
+    def rotate(self, points, center, angle_degree):
         rotated_points = []
 
         # represent our angle in radians
@@ -158,7 +162,7 @@ class IttGestureRecognizer(QMainWindow):
         # beware of the order of multiplications, not commutative!
         transform = t2  @ rot_matrix @ t1
 
-        for point in self.gesture_resampled:
+        for point in points:
 
             # homogenous point of the point to be rotated
             hom_point = np.matrix([[point[0]], [point[1]], [1]])
@@ -170,14 +174,14 @@ class IttGestureRecognizer(QMainWindow):
             rotated_points.append(
                 ((rotated_point[0] / rotated_point[2]), float(rotated_point[1] / rotated_point[2])))
 
-        self.gesture_resampled = rotated_points
+        return points
 
-    def scale(self):
+    def scale(self, points):
 
         # the desired interval size
         size = 100
 
-        xs, ys = zip(*self.gesture_resampled)
+        xs, ys = zip(*points)
 
         # minimum and maximum occurrences of x and y values of the points
         x_min, x_max = min(xs), max(xs)
@@ -190,12 +194,12 @@ class IttGestureRecognizer(QMainWindow):
         scaled_points = []
 
         # map the points to the desired interval
-        for p in self.gesture_resampled:
+        for p in points:
             p_new = ((p[0] - x_min) * size / x_range,
                      (p[1] - y_min) * size / y_range)
             scaled_points.append(p_new)
 
-        self.gesture_resampled = scaled_points
+        return points
 
 
 if __name__ == "__main__":
