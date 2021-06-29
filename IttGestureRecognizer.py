@@ -31,6 +31,13 @@ class IttGestureRecognizer(QMainWindow):
         self.__ui.DrawWidgetContainer.addWidget(self._drawWidget)
         self.__ui.SaveGestureButton.clicked.connect(self.save_current_gesture)
         self.__ui.ShowButton.clicked.connect(self.predict_gesture)
+        self.__ui.DeleteButton.clicked.connect(self.delete_gesture)
+
+    def delete_gesture(self):
+        key = self.GestureList.currentItem().text()
+        del self.saved_gestures[key]
+        self.GestureList.clear()
+        self.GestureList.insertItems(0, self.saved_gestures)
 
     def predict_gesture(self):
         self.gesture_original = self._drawWidget.points
@@ -39,14 +46,11 @@ class IttGestureRecognizer(QMainWindow):
         resultText = ""
         lowest_dist = 0
         for key, value in self.saved_gestures.items():
-            print(key)
             dist = 0
             for p1, p2 in zip(self.normalize(self.gesture_original), value):
                 dist = abs(p1[0] - p2[0]) + abs(p1[1] - p2[1])
                 dist += dist
             dist = dist.item(0)
-            print("dist")
-            print(dist)
 
             if (lowest_dist == 0):
                 lowest_dist = dist
@@ -55,8 +59,6 @@ class IttGestureRecognizer(QMainWindow):
             if (dist < lowest_dist):
                 lowest_dist = dist
                 resultText = key
-            print("lowest")
-            print(lowest_dist)
 
         # display result
         self.ResultOutput.setText("Result: " + resultText)
@@ -77,7 +79,6 @@ class IttGestureRecognizer(QMainWindow):
         # TODO: remove, just for testing
         # self._drawWidget.points = self.gesture_resampled
         # self._drawWidget.repaint()
-        print(self.saved_gestures)
 
     def normalize(self, points):
         # 1. Resample point path
