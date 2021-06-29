@@ -33,13 +33,38 @@ class IttGestureRecognizer(QMainWindow):
         self.__ui.ShowButton.clicked.connect(self.predict_gesture)
 
     def predict_gesture(self):
-        # TODO:
-        self.ResultOutput.setText("Result")
+        self.gesture_original = self._drawWidget.points
+
+        # iterate through saved gestures and calculate the dist against them
+        resultText = ""
+        lowest_dist = 0
+        for key, value in self.saved_gestures.items():
+            print(key)
+            dist = 0
+            for p1, p2 in zip(self.normalize(self.gesture_original), value):
+                dist = abs(p1[0] - p2[0]) + abs(p1[1] - p2[1])
+                dist += dist
+            dist = dist.item(0)
+            print("dist")
+            print(dist)
+
+            if (lowest_dist == 0):
+                lowest_dist = dist
+                resultText = key
+
+            if (dist < lowest_dist):
+                lowest_dist = dist
+                resultText = key
+            print("lowest")
+            print(lowest_dist)
+
+        # display result
+        self.ResultOutput.setText("Result: " + resultText)
 
     def save_current_gesture(self):
+        # resample, rotate and scale points
         self.gesture_original = self._drawWidget.points
-        # resample points
-        self.gesture_resampled = self.prepare_points(self.gesture_original)
+        self.gesture_resampled = self.normalize(self.gesture_original)
 
         # save gesture and add it to ui
         self.saved_gestures[self.GestureNameInput.text()
@@ -52,8 +77,9 @@ class IttGestureRecognizer(QMainWindow):
         # TODO: remove, just for testing
         # self._drawWidget.points = self.gesture_resampled
         # self._drawWidget.repaint()
+        print(self.saved_gestures)
 
-    def prepare_points(self, points):
+    def normalize(self, points):
         # 1. Resample point path
         resampled_points = self.resample(points)
 
@@ -117,7 +143,8 @@ class IttGestureRecognizer(QMainWindow):
             d = self.distance(p1, points[i])
 
             if curpos + d >= stepsize:
-                # once we reach or step over our desired distance, we push our resampled point
+                # once we reach or step over our desired distance, we
+                # push our resampled point
                 # to the correct position based on our stepsize
                 nx = p1[0] + ((stepsize - curpos) / d) * \
                     (points[i][0] - p1[0])
