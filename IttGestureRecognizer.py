@@ -33,34 +33,39 @@ class IttGestureRecognizer(QMainWindow):
 
     def save_current_gesture(self):
         self.gesture_original = self._drawWidget.points
-        
+        print(self.gesture_original)
         # resample points
         self.gesture_resampled = self.prepare_points(self.gesture_original)
 
         # save gesture and add it to ui
-        self.saved_gestures[self.GestureNameInput.text()] = self.gesture_resampled
+        self.saved_gestures[self.GestureNameInput.text()
+                            ] = self.gesture_resampled
         gesture_name_list = []
-
         for key, value in self.saved_gestures.items():
             gesture_name_list.append(key)
         self.GestureList.clear()
         self.GestureList.insertItems(0, gesture_name_list)
+        print(type(self.gesture_resampled))
+        print(self.gesture_resampled)
+        # TODO: remove, just for testing
+        # self._drawWidget.points = self.gesture_resampled
+        # self._drawWidget.repaint()
 
     def prepare_points(self, points):
         # 1. Resample point path
         resampled_points = self.resample(points)
 
         # 2. Calculate angle and rotate points
-        angle = - \
-            self.angle_between(
-                resampled_points[0], self.centroid(resampled_points))
+        angle = -self.angle_between(
+            resampled_points[0], self.centroid(resampled_points))
+        print(angle)
         rotated_points = self.rotate(
             resampled_points, self.centroid(resampled_points), angle)
 
         # 3. Scale and translate
-        self.scale(rotated_points)
+        scaled_points = self.scale(rotated_points)
 
-        return rotated_points
+        return scaled_points
 
     def distance(self, p1, p2):
         # basic vector norm
@@ -93,12 +98,8 @@ class IttGestureRecognizer(QMainWindow):
         # the sum of the distances of all points along the originally drawn stroke
         length = self.total_length(points)
 
-        print(length)
-
         # the distance the resampled points have to each other
         stepsize = length / (self.step_count - 1)
-
-        print(stepsize)
 
         # current position along the strong in regard of step_size (see below)
         curpos = 0
@@ -133,7 +134,7 @@ class IttGestureRecognizer(QMainWindow):
 
             i += 1
 
-        return points
+        return resampled_points
 
     def centroid(self, points):
         xs, ys = zip(*points)
@@ -183,7 +184,7 @@ class IttGestureRecognizer(QMainWindow):
             rotated_points.append(
                 ((rotated_point[0] / rotated_point[2]), float(rotated_point[1] / rotated_point[2])))
 
-        return points
+        return rotated_points
 
     def scale(self, points):
 
@@ -208,7 +209,7 @@ class IttGestureRecognizer(QMainWindow):
                      (p[1] - y_min) * size / y_range)
             scaled_points.append(p_new)
 
-        return points
+        return scaled_points
 
 
 if __name__ == "__main__":
