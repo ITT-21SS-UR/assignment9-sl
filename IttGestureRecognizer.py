@@ -33,9 +33,18 @@ class IttGestureRecognizer(QMainWindow):
 
     def save_current_gesture(self):
         self.gesture_original = self._drawWidget.points
-        print(self.gesture_original)
+        
+        # resample points
         self.gesture_resampled = self.prepare_points(self.gesture_original)
-        print(self.gesture_resampled)
+
+        # save gesture and add it to ui
+        self.saved_gestures[self.GestureNameInput.text()] = self.gesture_resampled
+        gesture_name_list = []
+
+        for key, value in self.saved_gestures.items():
+            gesture_name_list.append(key)
+        self.GestureList.clear()
+        self.GestureList.insertItems(0, gesture_name_list)
 
     def prepare_points(self, points):
         # 1. Resample point path
