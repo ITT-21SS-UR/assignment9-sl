@@ -1,3 +1,5 @@
+# Answers were written by Johannes Lorper
+
 - What does the recognizer do?
 
 The point cloud recognizer recognizes trained multi and single stroke 2d-gestures.
