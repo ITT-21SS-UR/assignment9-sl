@@ -1,0 +1,21 @@
+- What does the recognizer do?
+
+The point cloud recognizer recognizes trained multi and single stroke 2d-gestures.
+The $P recognizer transforms the strokes into a "point cloud" (a presentation of the strokes as simple points).
+That means that the direction and cronological order in which the strokes where drawn is removed and the points that were 
+generated from the strokes are in an unordered list.
+The recognizer then uses a greedy-5 algorythm to compare the new drawn gesture's point cloud with the learned gestures point clouds
+and find the best match. For this the points from the new gesture get paired with points from the trained gestures, and the the best possible
+pairing is chosen.
+
+- Name an advantage of the $P recognizer over the $1 recognizer
+
+The dollar 1 recognizer uses the order and direction in which the strokes were drawn, while the $P recogizer discards this information.
+Because of this, gestures that are drawn in another direction or with an other stroke order cant be recognized correctly by the $1 recognizer.
+For the $P recognizer the order and direction of the gerstures is irrelevant
+
+- What is the minimum matching distance?
+
+As described above, the $P recognizer compares all possible sets of points pairs from the new gestures with all the trained gestures.
+He then calculates the distances between the paired points.
+The minimum matching distance describes the pair-combination that has the lowest sum of distances between its point pairs. 
